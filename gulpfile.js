@@ -1,8 +1,20 @@
 'use strict'
 
-var {src, task, series, dest, watch} = require('gulp');
-var sass = require('gulp-sass');
+let {src, task, series, dest, watch} = require('gulp');
+let sass = require('gulp-sass');
+let concat = require('gulp-concat');
 
+task('scripts', function() {
+  return src('./src/js/*.js')
+      .pipe(concat('all.js'))
+      .pipe(dest('./'));
+});
+
+task('scripts:watch', function () {
+
+  watch('./src/js/*.js',series('scripts'));
+
+});
 
 task('sass', function () {
   return src('./src/sass/*.scss')
