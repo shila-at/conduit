@@ -2,17 +2,20 @@ let content = document.getElementById('content');
 let navBar = document.getElementById('navbar-nav');
 let navBarContent;
 
+
 let globalOptions = {
   position: "bottom-right",
   animationDuration: 300
 }
 let notifier = new AWN(globalOptions);
 
+
 /*axios.get('https://conduit.productionready.io/api/user', {
   headers: {
     'Content-Type': 'application/json',
     'X-Requested-With': 'XMLHttpRequest',
     'Access-Control-Allow-Origin': 'http://conduit.local',
+    'Authorization' : 'Token '+JSON.parse(localStorage.getItem('userLogIn')).token
 },
 }).then(function (response) {
   console.log(response.data);
@@ -21,7 +24,6 @@ let notifier = new AWN(globalOptions);
   console.log(error);
 });*/
 
-/*notifier.success('Custom message', {});*/
 
 
 window.onload = (event) => {
@@ -235,11 +237,13 @@ const renderHomePage = () => {
 
     let articles = response.data.articles;
 
-    let ul_tag = document.getElementById('articles');
-    ul_tag.innerHTML = '';
+
+    let ulTag = document.getElementById('articles');
+
+    ulTag.innerHTML = '';
     if (articles) {
       Array.from(articles).forEach((item, index) => {
-        let article_li = `<li>
+        let articleLi = `<li>
               <div class="title-article">
                  <div class="info">
                    <a href="#">
@@ -267,15 +271,15 @@ const renderHomePage = () => {
                 </a>
               </div>
             </li>`;
-        ul_tag.innerHTML += article_li;
+        ulTag.innerHTML += articleLi;
       })
     } else {
-      ul_tag.innerHTML = `<li><p class="text-primary">No article found</p></li>`;
+      ulTag.innerHTML = `<li><p class="text-primary">No article found</p></li>`;
     }
 
   })
       .catch(function (error) {
-        notifier.alert('An error has occurred', {})
+        notifier.alert('get article error', {})
         console.log(error);
       });
 
@@ -327,7 +331,7 @@ const renderRegisterPage = () => {
       user_id = 1;
     }
 
-    let new_user = {
+    let newUser = {
       id: user_id,
       username: reg_username.value,
       email: reg_email.value,
@@ -335,7 +339,7 @@ const renderRegisterPage = () => {
       image: ''
     };
 
-    userRegister(new_user);
+    userRegister(newUser);
 
   })
 
@@ -377,7 +381,15 @@ const renderLoginPage = () => {
     event.preventDefault();
 
     const {log_email, log_password} = this.elements;
-    let users = JSON.parse(localStorage.getItem('users'));
+
+    let user = {
+      email: log_email.value,
+      password: log_password.value,
+    }
+
+    userLogin(user);
+
+    /*let users = JSON.parse(localStorage.getItem('users'));
     let has_user = false;
     if (users !== null) {
 
@@ -392,8 +404,7 @@ const renderLoginPage = () => {
 
     if (has_user === false) {
       alert('کاربری با این مشخصات وجود ندارد.')
-    }
-
+    }*/
 
   });
 }
@@ -422,8 +433,8 @@ const renderProfilePage = () => {
         </nav>
         <div class="tab-content list-items no-padding" id="nav-tabContent">
           <div class="tab-pane fade show active" id="nav-my-articles">
-            <ul>
-              <li>
+            <ul id="my-article">
+              <!--<li>
                 <div class="title-article">
                   <div class="info">
                     <a href="#">
@@ -478,12 +489,12 @@ const renderProfilePage = () => {
                     <span>Read more ...</span>
                   </a>
                 </div>
-              </li>
+              </li>-->
             </ul>
           </div>
           <div class="tab-pane list-items fade no-padding" id="nav-favorites">
-            <ul>
-              <li>
+            <ul id="my-article-favorite">
+              <!--<li>
                 <div class="title-article">
                   <div class="info">
                     <a href="#">
@@ -510,7 +521,7 @@ const renderProfilePage = () => {
                     <span>Read more ...</span>
                   </a>
                 </div>
-              </li>
+              </li>-->
             </ul>
           </div>
         </div>
@@ -520,6 +531,67 @@ const renderProfilePage = () => {
 
   content.innerHTML = '';
   content.innerHTML += profilePage;
+
+
+  axios.get('https://conduit.productionready.io/api/articles', {
+    params: {
+      author: JSON.parse(localStorage.getItem('userLogIn')).username,
+    },
+    headers: {
+      'Content-Type': 'application/json',
+      'X-Requested-With': 'XMLHttpRequest',
+      'Access-Control-Allow-Origin': 'http://conduit.local',
+    },
+  }).then(function (response) {
+
+    let articles = response.data.articles;
+    console.log(articles)
+
+    let ulTag = document.getElementById('my-article');
+    ulTag.innerHTML = '';
+
+    if (articles.length > 0) {
+      Array.from(articles).forEach((item, index) => {
+        let articleLi = `<li>
+              <div class="title-article">
+                 <div class="info">
+                   <a href="#">
+                     <img class="d-inline" src="./public/image/smiley-cyrus.jpg" alt="user-icon">
+                   </a>
+                   <div class="d-inline-block">
+                     <a href="#">
+                       <p>${item.author.username}</p>
+                     </a>
+                     <span>${item.createdAt}</span>
+                   </div>
+                 </div>
+                 <div class="btn like" id="article${index}" onclick="addLike(${index})">
+                   <span>${item.favoritesCount}</span>
+                   <i class="fa fa-heart"></i>
+                 </div>
+              </div>
+              <div class="detail">
+                <a href="#">
+                  <h4>${item.title}</h4>
+                </a>
+                <p>${item.body}</p>
+                <a href="#">
+                  <span>Read more ...</span>
+                </a>
+              </div>
+            </li>`;
+        ulTag.innerHTML += articleLi;
+      })
+    } else {
+      ulTag.innerHTML = `<li><p class="text-primary">No article found</p></li>`;
+    }
+
+  })
+      .catch(function (error) {
+        notifier.alert('get user atrticle error', {})
+        console.log(error);
+      });
+
 
 }
 
@@ -596,61 +668,60 @@ const renderNewArticlePage = () => {
   let articleForm = document.getElementById('new-article-form');
   articleForm.addEventListener("submit", function (event) {
     event.preventDefault();
+
     const {title, subject, description, tags} = this.elements;
 
-    let article_id;
-    if (JSON.parse(localStorage.getItem('articles')) !== null) {
-      article_id = JSON.parse(localStorage.getItem('articles')).length + 1;
-    } else {
-      article_id = 1;
-    }
-
-    let user_id = JSON.parse(localStorage.getItem('userLogIn')).id;
-    let user_name = JSON.parse(localStorage.getItem('userLogIn')).name;
-
-    let today = new Date();
-    let new_article = {
-      id: article_id,
-      user_id: user_id,
-      user_name: user_name,
+    let newArticle = {
       title: title.value,
-      subject: subject.value,
-      description: description.value,
-      tags: tags.value,
-      like: 0,
-      date: today.getFullYear() + '-' + (today.getMonth() + 1) + '-' + today.getDate(),
+      description: subject.value,
+      body: description.value,
+      tagList: tags.value,
     };
 
-    saveArticle(new_article);
+    saveArticle(newArticle);
 
   })
 
 }
 
+
 const saveArticle = (article) => {
+  console.log(article);
 
-  let articles;
-  let all_article = JSON.parse(localStorage.getItem('articles'));
+  let userToken = 'Token ' + JSON.parse(localStorage.getItem('userLogIn')).token;
+  console.log(userToken);
 
-  if (all_article !== null) {
+  axios.post('https://conduit.productionready.io/api/articles', {
+    "article": {
+      "title": article.title,
+      "description": article.description,
+      "body": article.body,
+      "tagList": ["reactjs", "angularjs", "dragons"]
+    },
+    headers: {
+      'Content-Type': 'application/json',
+      'X-Requested-With': 'XMLHttpRequest',
+      'Access-Control-Allow-Origin': 'http://conduit.local',
+      'Authorization' : 'Token '+JSON.parse(localStorage.getItem('userLogIn')).token
+    },
 
-    articles = all_article;
-    articles.push(article);
+  }).then(function (response) {
+    notifier.success('Article successfully saved', {});
+    redirect('home');
+    console.log(response);
+  }).catch(function (error) {
+    notifier.alert('save article error', {})
+    console.log(error);
+  });
 
-  } else {
-    articles = [article];
-  }
-
-  localStorage.setItem('articles', JSON.stringify(articles));
-  redirect('home');
-  console.log(localStorage.getItem('articles'))
 
 }
+
 
 const userRegister = (user) => {
 
   axios.post('https://conduit.productionready.io/api/users', {
-    "user":{"password":user.password,"username":user.username,"email":user.email},
+    "user": {"password": user.password, "username": user.username, "email": user.email},
     headers: {
       'Content-Type': 'application/json',
       'X-Requested-With': 'XMLHttpRequest',
@@ -658,48 +729,57 @@ const userRegister = (user) => {
   }).then(function (response) {
     notifier.success('Registration completed successfully', {});
 
-    userLogin(user);
+    let newUser ={
+      email : user.email,
+      password : user.password,
+    }
+
+    userLogin(newUser);
 
   }).catch(function (error) {
-    notifier.alert('An error has occurred', {})
+    notifier.alert('register error has occurred', {})
     console.log(error);
   });
 
 
-
 }
 
-const userLogin = (user) => {
 
-  axios.get('https://conduit.productionready.io/api/users/login', {
-    "user":{"email":user.email,"password":user.password},
+const userLogin = (user) => {
+  console.log(user);
+  axios.post('https://conduit.productionready.io/api/users/login', {
+    "user": {"email": user.email, "password": user.password},
     headers: {
       'Content-Type': 'application/json',
       'X-Requested-With': 'XMLHttpRequest',
       'Access-Control-Allow-Origin': 'http://conduit.local',
     },
   }).then(function (response) {
-    console.log(response.data);
+
+
+    let userToken = response.data.user.token;
+
+    let userLogIn = {
+      username: response.data.user.username,
+      email: response.data.user.email,
+      token: userToken,
+    };
+
+    if (localStorage.getItem('userLogIn') !== null) {
+      localStorage.removeItem('userLogIn')
+    }
+
+    localStorage.setItem('userLogIn', JSON.stringify(userLogIn));
+
+    redirect('home');
+    notifier.success('login completed successfully', {});
+
+
   }).catch(function (error) {
-    notifier.alert('An error has occurred', {})
+    notifier.alert('login error has occurred', {})
     console.log(error);
   });
 
-  let userLogIn = {
-    id: user.id,
-    name: user.username,
-    email: user.email
-  };
-
-  if (localStorage.getItem('userLogIn') !== null) {
-    localStorage.removeItem('userLogIn')
-  }
-
-  localStorage.setItem('userLogIn', JSON.stringify(userLogIn));
-
-  redirect('home');
-
-  console.log(localStorage.getItem('userLogIn'));
 
 }
 
@@ -712,34 +792,18 @@ const logOut = (e) => {
   redirect('home');
 }
 
-const addLike = (article_id) => {
+const addLike = (articleId) => {
   if (!hasUser()) {
     redirect('sign-in');
   } else {
-    let articles = JSON.parse(localStorage.getItem('articles'));
 
-    if (articles) {
-
-      let article = articles.find(v => v.id === article_id);
-      article.like += 1;
-
-      let new_articles = articles.filter(v => v.id !== article_id);
-      new_articles.push(article);
-
-      localStorage.removeItem('articles');
-      localStorage.setItem('articles', JSON.stringify(new_articles));
-
-      let like_btn = 'article' + article_id;
-      document.getElementById(like_btn).querySelector('span').innerHTML = article.like;
-
-    }
   }
 
 }
 
 
-/*console.log(localStorage.getItem('users'));
-console.log(localStorage.getItem('userLogIn'));*/
+
+
 
 
 
