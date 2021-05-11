@@ -1,8 +1,6 @@
 let content = document.getElementById('content');
 let navBar = document.getElementById('navbar-nav');
 let navBarContent;
-
-
 let globalOptions = {
   position: "bottom-right",
   animationDuration: 300
@@ -23,7 +21,6 @@ let notifier = new AWN(globalOptions);
   notifier.alert('An error has occurred', {})
   console.log(error);
 });*/
-
 
 
 window.onload = (event) => {
@@ -53,6 +50,7 @@ const getAllRoute = () => {
   });
 }
 
+
 const hasUser = () => {
 
   let userLogIn;
@@ -73,7 +71,6 @@ const setNavbar = () => {
   if (hasUser()) {
 
     let userLogIn = localStorage.getItem('userLogIn');
-    console.log(userLogIn)
     navBarContent = ` <li class="nav-item">
           <a class="nav-link route active" href="home">Home</a>
         </li>
@@ -110,13 +107,11 @@ const setNavbar = () => {
   }
 
   navBar.innerHTML += navBarContent;
+
 }
 
 setNavbar();
 
-/*window.addEventListener('hashchange', function(){
-
-});*/
 
 const chooseRoute = (href) => {
 
@@ -297,6 +292,7 @@ const renderRegisterPage = () => {
         <p>Have an account?</p>
       </a>
       <form action="" method="post" id="register-form">
+        <ul id="register-errors"></ul>
         <div class="item">
           <input type="text" class="form-control" placeholder="UserName" name="reg_username" required>
         </div>
@@ -324,15 +320,8 @@ const renderRegisterPage = () => {
     event.preventDefault();
     const {reg_username, reg_email, reg_password} = this.elements;
 
-    let user_id;
-    if (JSON.parse(localStorage.getItem('users')) !== null) {
-      user_id = JSON.parse(localStorage.getItem('users')).length + 1;
-    } else {
-      user_id = 1;
-    }
 
     let newUser = {
-      id: user_id,
       username: reg_username.value,
       email: reg_email.value,
       password: reg_password.value,
@@ -356,6 +345,7 @@ const renderLoginPage = () => {
         <p>Need an account?</p>
       </a>
       <form action="#" method="post" id="login-form">
+        <ul id="login-errors"></ul>
         <div class="item">
           <input type="email" name="log_email" class="form-control" placeholder="Email">
         </div>
@@ -640,6 +630,7 @@ const renderNewArticlePage = () => {
     <div class="col-md-10 col-lg-8 form-custom">
 
       <form action="#" method="post" id="new-article-form">
+      <ul id="article-errors"></ul>
         <div class="item">
           <input type="text" name="title" class="form-control" placeholder="Article Title" required>
         </div>
@@ -686,8 +677,11 @@ const renderNewArticlePage = () => {
 
 
 const saveArticle = (article) => {
-  console.log(article);
 
+  console.log(article);
+  console.log(article.title);
+  console.log(article.description);
+  console.log(article.body);
   let userToken = 'Token ' + JSON.parse(localStorage.getItem('userLogIn')).token;
   console.log(userToken);
 
@@ -702,7 +696,7 @@ const saveArticle = (article) => {
       'Content-Type': 'application/json',
       'X-Requested-With': 'XMLHttpRequest',
       'Access-Control-Allow-Origin': 'http://conduit.local',
-      'Authorization' : 'Token '+JSON.parse(localStorage.getItem('userLogIn')).token
+      'Authorization': userToken
     },
 
   }).then(function (response) {
@@ -711,7 +705,10 @@ const saveArticle = (article) => {
     console.log(response);
   }).catch(function (error) {
     notifier.alert('save article error', {})
-    console.log(error);
+
+    let errors = error.response.data.errors;
+    renderError(errors,'article-errors')
+
   });
 
 
@@ -729,16 +726,21 @@ const userRegister = (user) => {
   }).then(function (response) {
     notifier.success('Registration completed successfully', {});
 
-    let newUser ={
-      email : user.email,
-      password : user.password,
+    let newUser = {
+      email: user.email,
+      password: user.password,
     }
 
     userLogin(newUser);
 
   }).catch(function (error) {
+
     notifier.alert('register error has occurred', {})
-    console.log(error);
+
+
+    let errors = error.response.data.errors;
+    renderError(errors,'register-errors')
+
   });
 
 
@@ -777,7 +779,10 @@ const userLogin = (user) => {
 
   }).catch(function (error) {
     notifier.alert('login error has occurred', {})
-    console.log(error);
+
+    let errors = error.response.data.errors;
+    renderError(errors,'login-errors')
+
   });
 
 
@@ -802,6 +807,21 @@ const addLike = (articleId) => {
 }
 
 
+const renderError = (errors,tagId) =>{
+
+  let errorTag = document.getElementById(tagId);
+
+  Object.entries(errors).forEach((error) => {
+
+    let message = '';
+    error.forEach((item) => {
+      message = message+ " " + item
+    })
+    let li = `<li class="text-danger">${message}</li>`;
+    errorTag.innerHTML += li;
+  });
+
+}
 
 
 
