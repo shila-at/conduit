@@ -1,26 +1,18 @@
 let content = document.getElementById('content');
-let navBar = document.getElementById('navbar-nav');
+let navBar = document.getElementById('navbar-top');
 let navBarContent;
 let globalOptions = {
   position: "bottom-right",
   animationDuration: 300
 }
 let notifier = new AWN(globalOptions);
-
-
-/*axios.get('https://conduit.productionready.io/api/user', {
+let config = {
   headers: {
     'Content-Type': 'application/json',
     'X-Requested-With': 'XMLHttpRequest',
     'Access-Control-Allow-Origin': 'http://conduit.local',
-    'Authorization' : 'Token '+JSON.parse(localStorage.getItem('userLogIn')).token
-},
-}).then(function (response) {
-  console.log(response.data);
-}).catch(function (error) {
-  notifier.alert('An error has occurred', {})
-  console.log(error);
-});*/
+  }
+}
 
 
 window.onload = (event) => {
@@ -71,20 +63,30 @@ const setNavbar = () => {
   if (hasUser()) {
 
     let userLogIn = localStorage.getItem('userLogIn');
-    navBarContent = ` <li class="nav-item">
+    navBarContent = ` <nav class="navbar navbar-expand-lg navbar-light bg-light" id="header-nav">
+  <div class="container-fluid">
+    <a class="navbar-brand" href="#">Conduit</a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
+            data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent"
+            aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav" id="navbar-nav">
+        <li class="nav-item">
           <a class="nav-link route active" href="home">Home</a>
         </li>
-<li class="nav-item">
+        <li class="nav-item">
           <a class="nav-link route" href="new-article">
-          <i class="fa fa-edit"></i>
-          New Article
-</a>
+            <i class="fa fa-edit"></i>
+            New Article
+          </a>
         </li>
         <li class="nav-item">
           <a class="nav-link route" href="setting">
-          <i class="fa fa-cog"></i>
-          Settings
-</a>
+            <i class="fa fa-cog"></i>
+            Settings
+          </a>
         </li>
         <li class="nav-item">
           <a class="nav-link route" href="profile">${JSON.parse(userLogIn).username}</a>
@@ -92,17 +94,35 @@ const setNavbar = () => {
         <li class="nav-item">
           <a class="nav-link route" href="home" onclick="logOut(event)">LogOut</a>
         </li>
+      </ul>
+    </div>
+  </div>
+</nav>
 `
   } else {
-    navBarContent = ` <li class="nav-item">
+    navBarContent = ` <nav class="navbar navbar-expand-lg navbar-light bg-light" id="header-nav">
+  <div class="container-fluid">
+    <a class="navbar-brand" href="#">Conduit</a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
+            data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent"
+            aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav" id="navbar-nav">
+        <li class="nav-item">
           <a class="nav-link route active" href="home">Home</a>
         </li>
-<li class="nav-item">
+        <li class="nav-item">
           <a class="nav-link route" href="sign-in">sign in</a>
         </li>
         <li class="nav-item">
           <a class="nav-link route" href="sign-up">sign up</a>
         </li>
+      </ul>
+    </div>
+  </div>
+</nav>
       `;
   }
 
@@ -678,12 +698,14 @@ const renderNewArticlePage = () => {
 
 const saveArticle = (article) => {
 
-  console.log(article);
-  console.log(article.title);
-  console.log(article.description);
-  console.log(article.body);
   let userToken = 'Token ' + JSON.parse(localStorage.getItem('userLogIn')).token;
-  console.log(userToken);
+
+  let newConfig = {
+    headers : {
+      ...config.headers,
+      'Authorization': userToken
+    }
+  }
 
   axios.post('https://conduit.productionready.io/api/articles', {
     "article": {
@@ -692,17 +714,9 @@ const saveArticle = (article) => {
       "body": article.body,
       "tagList": ["reactjs", "angularjs", "dragons"]
     },
-    headers: {
-      'Content-Type': 'application/json',
-      'X-Requested-With': 'XMLHttpRequest',
-      'Access-Control-Allow-Origin': 'http://conduit.local',
-      'Authorization': userToken
-    },
-
-  }).then(function (response) {
+  },newConfig).then(function (response) {
     notifier.success('Article successfully saved', {});
     redirect('home');
-    console.log(response);
   }).catch(function (error) {
     notifier.alert('save article error', {})
 
@@ -719,11 +733,7 @@ const userRegister = (user) => {
 
   axios.post('https://conduit.productionready.io/api/users', {
     "user": {"password": user.password, "username": user.username, "email": user.email},
-    headers: {
-      'Content-Type': 'application/json',
-      'X-Requested-With': 'XMLHttpRequest',
-    },
-  }).then(function (response) {
+  },config).then(function (response) {
     notifier.success('Registration completed successfully', {});
 
     let newUser = {
@@ -748,15 +758,10 @@ const userRegister = (user) => {
 
 
 const userLogin = (user) => {
-  console.log(user);
+
   axios.post('https://conduit.productionready.io/api/users/login', {
     "user": {"email": user.email, "password": user.password},
-    headers: {
-      'Content-Type': 'application/json',
-      'X-Requested-With': 'XMLHttpRequest',
-      'Access-Control-Allow-Origin': 'http://conduit.local',
-    },
-  }).then(function (response) {
+  },config).then(function (response) {
 
 
     let userToken = response.data.user.token;

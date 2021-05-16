@@ -12,7 +12,7 @@ nav .navbar-brand {
   color: #5CB85C !important;
 }
 nav .collapse.navbar-collapse {
-  display: block !important;
+  flex-grow: unset !important;
 }
 nav .collapse.navbar-collapse .navbar-nav {
   float: right;

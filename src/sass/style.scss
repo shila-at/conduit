@@ -20,7 +20,7 @@ nav{
   }
   .collapse.navbar-collapse{
 
-    display: block !important;
+    flex-grow: unset !important;
     .navbar-nav{
       float: right;
     }
